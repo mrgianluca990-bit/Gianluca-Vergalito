@@ -1,1 +1,48 @@
+name: Build macOS Plugin
 
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: macos-15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure
+        run: |
+          cmake -S . -B build -G Xcode \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0
+
+      - name: Build
+        run: cmake --build build --config Release --parallel 3
+
+      - name: Package
+        run: |
+          mkdir -p dist
+
+          ditto -c -k --sequesterRsrc --keepParent \
+            "build/PrimaTakeFinish_artefacts/Release/VST3/Prima Take Finish.vst3" \
+            "dist/PrimaTakeFinish-VST3-macOS-universal.zip"
+
+          ditto -c -k --sequesterRsrc --keepParent \
+            "build/PrimaTakeFinish_artefacts/Release/AU/Prima Take Finish.component" \
+            "dist/PrimaTakeFinish-AU-macOS-universal.zip"
+
+      - name: Upload VST3
+        uses: actions/upload-artifact@v4
+        with:
+          name: PrimaTakeFinish-VST3-macOS-universal
+          path: dist/PrimaTakeFinish-VST3-macOS-universal.zip
+
+      - name: Upload AU
+        uses: actions/upload-artifact@v4
+        with:
+          name: PrimaTakeFinish-AU-macOS-universal
+          path: dist/PrimaTakeFinish-AU-macOS-universal.zip
