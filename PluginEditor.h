@@ -19,14 +19,15 @@ public:
     void drawLabel (juce::Graphics&, juce::Label&) override;
 
 private:
-    juce::Colour accent      { 0xffe65045 };
-    juce::Colour accentSoft  { 0xfff07a70 };
-    juce::Colour ringOff     { 0xff30343a };
-    juce::Colour knobTop     { 0xff34383f };
-    juce::Colour knobBottom  { 0xff17191d };
+    juce::Colour accentHot  { 0xffff5d4d };
+    juce::Colour accentWarm { 0xffff9f4d };
+    juce::Colour accentCool { 0xff52d3ff };
+    juce::Colour ringOff    { 0xff2a2f36 };
 };
 
-class PrimaTakeFinishAudioProcessorEditor final : public juce::AudioProcessorEditor
+class PrimaTakeFinishAudioProcessorEditor final
+    : public juce::AudioProcessorEditor,
+      private juce::Timer
 {
 public:
     explicit PrimaTakeFinishAudioProcessorEditor (PrimaTakeFinishAudioProcessor&);
@@ -37,26 +38,34 @@ public:
 
 private:
     PrimaTakeFinishAudioProcessor& processor;
-    FinishLookAndFeel lookAndFeel;
+    FinishLookAndFeel finishLook;
 
     struct Knob
     {
         juce::Slider slider;
-        juce::Label  label;
-        juce::Label  hint;
+        juce::Label name;
+        juce::Label hint;
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> attachment;
     };
 
-    Knob drive, body, presence, control, mix, output;
-    std::array<Knob*, 6> knobs { &drive, &body, &presence, &control, &mix, &output };
+    Knob drive, body, detail, glue, punch, space, mix, output;
+    std::array<Knob*, 8> knobs {
+        &drive, &body, &detail, &glue,
+        &punch, &space, &mix, &output
+    };
 
     void setupKnob (Knob& knob,
                     const juce::String& name,
-                    const juce::String& hintText,
+                    const juce::String& hint,
                     const juce::String& parameterID);
 
-    void drawHeader (juce::Graphics&, juce::Rectangle<float>);
-    void drawControlCard (juce::Graphics&, juce::Rectangle<float>, bool highlighted);
+    void drawTopBar (juce::Graphics&, juce::Rectangle<float>);
+    void drawEngine (juce::Graphics&, juce::Rectangle<float>);
+    void drawMeter (juce::Graphics&, juce::Rectangle<float>,
+                    float value, juce::Colour colour,
+                    const juce::String& label);
+
+    void timerCallback() override;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PrimaTakeFinishAudioProcessorEditor)
 };
