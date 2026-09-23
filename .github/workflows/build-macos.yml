@@ -23,6 +23,20 @@ jobs:
       - name: Build
         run: cmake --build build --config Release --parallel 3
 
+      - name: Ad-hoc sign
+        run: |
+          codesign --force --deep --sign - \
+            "build/PrimaTakeFinish_artefacts/Release/VST3/Prima Take Finish.vst3"
+
+          codesign --force --deep --sign - \
+            "build/PrimaTakeFinish_artefacts/Release/AU/Prima Take Finish.component"
+
+          codesign --verify --deep --strict --verbose=2 \
+            "build/PrimaTakeFinish_artefacts/Release/VST3/Prima Take Finish.vst3"
+
+          codesign --verify --deep --strict --verbose=2 \
+            "build/PrimaTakeFinish_artefacts/Release/AU/Prima Take Finish.component"
+
       - name: Package
         run: |
           mkdir -p dist
